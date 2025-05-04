@@ -23,6 +23,19 @@ jobs:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v4
       
+      - name: Install and cache PowerShell modules
+        uses: potatoqualitee/psmodulecache@v6.0
+        with:
+          modules-to-cache: Az, Microsoft.Graph, ExchangeOnlineManagement
+      
+      - name: Save PowerShell modules
+        shell: powershell
+        run: |
+          mkdir ./Modules
+          Save-Module -Name Az -Path ./Modules
+          Save-Module -Name Microsoft.Graph -Path ./Modules
+          Save-Module -Name ExchangeOnlineManagement -Path ./Modules
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
