@@ -6,20 +6,19 @@ param($Request, $TriggerMetadata)
 # Write to the Azure Functions log stream.
 Write-Host "PowerShell HTTP trigger function processed a request."
 
-
-Connect-MgGraph -Identity
-
-# Interact with query parameters or the body of the request.
-$name = $Request.Query.Name
-if (-not $name) {
-    $name = $Request.Body.Name
+If($env:AZURE_FUNCTIONS_ENVIRONMENT -eq "Development"){
+    Connect-MgGraph -EnvironmentVariable -NoWelcome
+}Else{
+    Connect-MgGraph -Identity
 }
 
-$body = "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
+Import-Module Microsoft.Graph.Users
+$nowdate = (Get-Date).ToUniversalTime()
+$userlist = Get-MgUser
+$users= $userlist | Select-Object -Property @{Name="TimeGenerated";Expression={$nowdate}}, id, displayName, userPrincipalName, accountEnabled, proxyAddresses
+$users | ConvertTo-Json
 
-if ($name) {
-    $body = "Hello, $name. This HTTP triggered function executed successfully."
-}
+$body = $users | ConvertTo-Json
 
 # Associate values to output bindings by calling 'Push-OutputBinding'.
 Push-OutputBinding -Name Response -Value ([HttpResponseContext]@{
